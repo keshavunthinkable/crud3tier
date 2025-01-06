@@ -19,7 +19,14 @@ export default function Navbar() {
                     className="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent"
+                    data-bs-target="#nav
+Unable to connect
+
+Firefox can’t establish a connection to the server at localhost:3000.
+
+    The site could be temporarily unavailable or too busy. Try again in a few moments.
+    If you are unable to load any pages, check your computer’s network connection.
+    If your computer or network is protected by a firewall or proxy, make sure that Firefox is permitted to access the web.barSupportedContent"
                 >
                     <span className="navbar-toggler-icon"></span>
                 </button>
