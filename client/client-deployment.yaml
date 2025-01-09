@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client
-        image: frontend:latest
+        image: aashkajain/frontend:latest
         ports:
         - containerPort: 3000
         env:
