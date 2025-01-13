@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=YOUR_KEY&token=YOUR_TOKEN',
+                    googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=q20TTLnxwhs86LCNEx3CyttOtKud3qrVrgBOdDgGSDY',
                     message: "Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
                 
                 }
@@ -62,11 +62,11 @@ pipeline {
             cleanWs()
         }
         success {
-            googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=YOUR_KEY&token=YOUR_TOKEN',
+            googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=q20TTLnxwhs86LCNEx3CyttOtKud3qrVrgBOdDgGSDY',
             message: "${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}"
         }
         failure {
-            googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=YOUR_KEY&token=YOUR_TOKEN',
+            googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=q20TTLnxwhs86LCNEx3CyttOtKud3qrVrgBOdDgGSDY',
             message: "${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}"
         }
     }
