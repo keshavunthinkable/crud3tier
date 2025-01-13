@@ -21,5 +21,5 @@ spec:
         - name: REACT_APP_YOUR_HOSTNAME
           valueFrom:
             secretKeyRef:
-              name: react-app-hostname-secret
+              name: secrets
               key: REACT_APP_YOUR_HOSTNAME
