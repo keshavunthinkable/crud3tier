@@ -28,12 +28,20 @@ pipeline {
 
         stage('Push Docker Images') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-registry-credentials') {
-                        docker.image('aashkajain/backend:latest').push()
-                        docker.image('aashkajain/frontend:latest').push()
-                    }
-                }
+
+                 script {
+            withCredentials([usernamePassword(credentialsId: 'dockerhub-registry-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                sh 'docker push aashkajain/backend:latest'
+                sh 'docker push aashkajain/frontend:latest'
+            }
+        }
+                // script {
+                //     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-registry-credentials') {
+                //         docker.image('aashkajain/backend:latest').push()
+                //         docker.image('aashkajain/frontend:latest').push()
+                //     }
+                // }
             }
         }
 
