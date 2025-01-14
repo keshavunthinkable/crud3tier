@@ -45,13 +45,13 @@ pipeline {
             }
         }
 
-        stage('Apply Kubernetes Secrets') {
-            steps {
-                script {
-                    sh 'kubectl apply -f secret.yaml'
-                }
-            }
-        }
+        // stage('Apply Kubernetes Secrets') {
+        //     steps {
+        //         script {
+        //             sh 'kubectl apply -f secret.yaml'
+        //         }
+        //     }
+        // }
         
         stage('Deploy to Kubernetes') {
             steps {
