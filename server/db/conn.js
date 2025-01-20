@@ -13,6 +13,7 @@ module.exports = {
             await client.connect()
             _db = client.db("employees")
             console.log("Successfully connected to MongoDB.")
+            console.log('Connecting to MongoDB at:', Db);
             
             return callback(null)
         } catch (error) {
