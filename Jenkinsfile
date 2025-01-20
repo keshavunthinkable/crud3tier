@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=q20TTLnxwhs86LCNEx3CyttOtKud3qrVrgBOdDgGSDY',
-                    message: "Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
+                    message: " 🔔 Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
                 
                 }
                 git branch: 'main', credentialsId: 'bitbucket_pass', url: 'https://aashkajain7240@bitbucket.org/aashka7240/jenkins-practice.git'
@@ -71,11 +71,11 @@ pipeline {
         }
         success {
             googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=q20TTLnxwhs86LCNEx3CyttOtKud3qrVrgBOdDgGSDY',
-            message: "${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}"
+            message: " ✅ ${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}"
         }
         failure {
             googlechatnotification url: 'https://chat.googleapis.com/v1/spaces/AAAANerUmSs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=q20TTLnxwhs86LCNEx3CyttOtKud3qrVrgBOdDgGSDY',
-            message: "${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}"
+            message: " ❌ ${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}"
         }
     }
 }
