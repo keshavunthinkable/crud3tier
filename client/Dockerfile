@@ -21,4 +21,5 @@
 
    # Serve the app
    #CMD ["npx", "serve", "-s", "build"]
-   CMD ["tail", "-f", "/dev/null"]
+   #CMD ["tail", "-f", "/dev/null"]
+   CMD ["npm", "run", "start"]
