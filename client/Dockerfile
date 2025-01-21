@@ -20,4 +20,5 @@
    EXPOSE 3000
 
    # Serve the app
-   CMD ["npx", "serve", "-s", "build"]
+   #CMD ["npx", "serve", "-s", "build"]
+   CMD ["tail", "-f", "/dev/null"]
