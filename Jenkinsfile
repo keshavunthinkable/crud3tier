@@ -60,6 +60,8 @@ pipeline {
                     sh 'kubectl apply -f server/server-service.yaml'
                     sh 'kubectl apply -f client/client-deployment.yaml'
                     sh 'kubectl apply -f client/client-service.yaml'
+                    sh 'kubectl rollout restart deploy client-deployment'
+                    sh 'kubectl rollout restart deploy server-deployment'
                 }
             }
         }
