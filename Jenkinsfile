@@ -36,22 +36,11 @@ pipeline {
                 sh 'docker push aashkajain/frontend:latest'
             }
         }
-                // script {
-                //     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-registry-credentials') {
-                //         docker.image('aashkajain/backend:latest').push()
-                //         docker.image('aashkajain/frontend:latest').push()
-                //     }
-                // }
+                
             }
         }
 
-        // stage('Apply Kubernetes Secrets') {
-        //     steps {
-        //         script {
-        //             sh 'kubectl apply -f secret.yaml'
-        //         }
-        //     }
-        // }
+        
         
         stage('Deploy to Kubernetes') {
             steps {
