@@ -13,7 +13,7 @@ pipeline {
                     message: " 🔔 Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
                 
                 }
-                git branch: 'main', credentialsId: 'bitbucket_pass', url: 'https://aashkajain7240@bitbucket.org/aashka7240/jenkins-practice.git'
+                git branch: 'main', credentialsId: 'git', url: 'git@bitbucket.org:aashka7240/jenkins-practice.git'
             }
         }
         
