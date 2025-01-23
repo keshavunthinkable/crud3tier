@@ -16,15 +16,17 @@ pipeline {
                     }
                 
                 }
-                //git branch: 'main', credentialsId: 'git', url: 'git@bitbucket.org:aashka7240/jenkins-practice.git'
+                git branch: 'main', credentialsId: 'git', url: 'git@bitbucket.org:aashka7240/jenkins-practice.git'
             }
         }
         
         stage('Docker Build') {
             steps {
                  script {
-                    sh 'docker build -t aashkajain/backend:${env.BUILD_NUMBER}./server'
-                    sh 'docker build -t aashkajain/frontend:${env.BUILD_NUMBER} ./client'
+                    sh '''#!/bin/bash
+                    docker build -t aashkajain/backend:${env.BUILD_NUMBER}./server
+                    docker build -t aashkajain/frontend:${env.BUILD_NUMBER} ./client
+                    '''
                 }
             }
         }
