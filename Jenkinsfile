@@ -53,8 +53,8 @@ pipeline {
                script {
                 // Replace the BUILD_NUMBER placeholder with the actual build number
                     sh '''#!/bin/bash
-                    sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' server/server-deployment.yaml
-                    sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' client/client-deployment.yaml
+                    sed -i 's/BUILD_NUMBER/${BUILD_NUMBER}/g' server/server-deployment.yaml
+                    sed -i 's/BUILD_NUMBER/${BUILD_NUMBER}/g' client/client-deployment.yaml
 
                     cat client/client-deployment.yaml
                     cat server/server-deployment.yaml
