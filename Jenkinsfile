@@ -10,7 +10,6 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
-                        echo "Google Chat URL: ${GOOGLE_CHAT_URL}"
                         googlechatnotification url: "${GOOGLE_CHAT_URL}",
                         message: "🔔 Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
                     }
@@ -24,8 +23,8 @@ pipeline {
             steps {
                  script {
                     sh '''#!/bin/bash
-                    docker build -t aashkajain/backend:${BUILD_NUMBER} ./server
-                    docker build -t aashkajain/frontend:${BUILD_NUMBER} ./client
+                    docker build -t aashkajain/backend:$BUILD_NUMBER ./server
+                    docker build -t aashkajain/frontend:$BUILD_NUMBER ./client
                     '''
                 }
             }
@@ -36,9 +35,11 @@ pipeline {
 
                  script {
             withCredentials([usernamePassword(credentialsId: 'dockerhub-registry-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
-                sh 'docker push aashkajain/backend:${env.BUILD_NUMBER}'
-                sh 'docker push aashkajain/frontend:${env.BUILD_NUMBER}'
+                sh '''#!/bin/bash
+                docker login -u $DOCKER_USER -p $DOCKER_PASS
+                docker push aashkajain/backend:$BUILD_NUMBER
+                docker push aashkajain/frontend:$BUILD_NUMBER
+                '''
             }
         }   
                 
@@ -51,17 +52,19 @@ pipeline {
             steps {
                script {
                 // Replace the BUILD_NUMBER placeholder with the actual build number
-                    sh "sed -i 's/BUILD_NUMBER/${env.BUILD_NUMBER}/g' server/server-deployment.yaml"
-                    sh "sed -i 's/BUILD_NUMBER/${env.BUILD_NUMBER}/g' client/client-deployment.yaml"
+                    sh '''#!/bin/bash
+                    sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' server/server-deployment.yaml
+                    sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' client/client-deployment.yaml
 
 
 
-                    sh 'kubectl apply -f server/server-deployment.yaml'
-                    sh 'kubectl apply -f server/server-service.yaml'
-                    sh 'kubectl apply -f client/client-deployment.yaml'
-                    sh 'kubectl apply -f client/client-service.yaml'
-                    // sh 'kubectl rollout restart deploy client-deployment'
-                    // sh 'kubectl rollout restart deploy server-deployment'
+                    kubectl apply -f server/server-deployment.yaml
+                    kubectl apply -f server/server-service.yaml
+                    kubectl apply -f client/client-deployment.yaml
+                    kubectl apply -f client/client-service.yaml
+                    kubectl rollout restart deploy client-deployment
+                    kubectl rollout restart deploy server-deployment
+                    '''
                 }
             }
         }
