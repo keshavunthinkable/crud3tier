@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
-                        googlechatnotification url: "${GOOGLE_CHAT_URL}",
+                        googlechatnotification url: GOOGLE_CHAT_URL,
                         message: "🔔 Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
                     }
                 
