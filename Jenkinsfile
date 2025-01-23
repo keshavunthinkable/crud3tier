@@ -77,7 +77,7 @@ pipeline {
                 def log = readFile('console.log')
                 withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
                     def message = "✅ ${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}\n\nLog:\n${log.take(4000)}"
-                    googlechatnotification url: "${GOOGLE_CHAT_URL}",
+                    googlechatnotification url: GOOGLE_CHAT_URL,
                     message: message
                 }
                 cleanWs()
@@ -88,7 +88,7 @@ pipeline {
                 def log = readFile('console.log')
                 withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
                     def message = "❌ ${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}\n\nLog:\n${log.take(4000)}"
-                    googlechatnotification url: "${GOOGLE_CHAT_URL}",
+                    googlechatnotification url: GOOGLE_CHAT_URL,
                     message: message
                 }
                 cleanWs()
