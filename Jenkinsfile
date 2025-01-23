@@ -24,7 +24,7 @@ pipeline {
             steps {
                  script {
                     sh '''#!/bin/bash
-                    docker build -t aashkajain/backend:${env.BUILD_NUMBER}./server
+                    docker build -t aashkajain/backend:${env.BUILD_NUMBER} ./server
                     docker build -t aashkajain/frontend:${env.BUILD_NUMBER} ./client
                     '''
                 }
