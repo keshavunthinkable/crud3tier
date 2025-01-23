@@ -56,6 +56,9 @@ pipeline {
                     sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' server/server-deployment.yaml
                     sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' client/client-deployment.yaml
 
+                    cat client-deployment
+                    cat server-deployment
+
 
 
                     kubectl apply -f server/server-deployment.yaml
