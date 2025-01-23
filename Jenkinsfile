@@ -69,7 +69,7 @@ pipeline {
             script {
                 def log = currentBuild.rawBuild.getLog(100).join('\n')
                 writeFile file: 'console.log', text: log
-                cleanWs()
+                
             }
         }
          success {
@@ -80,6 +80,7 @@ pipeline {
                     googlechatnotification url: "${GOOGLE_CHAT_URL}",
                     message: message
                 }
+                cleanWs()
             }
         }
         failure {
@@ -90,6 +91,7 @@ pipeline {
                     googlechatnotification url: "${GOOGLE_CHAT_URL}",
                     message: message
                 }
+                cleanWs()
             }
         }
     }
