@@ -16,7 +16,7 @@ pipeline {
                     }
                 
                 }
-                git branch: 'main', credentialsId: 'git', url: 'git@bitbucket.org:aashka7240/jenkins-practice.git'
+                //git branch: 'main', credentialsId: 'git', url: 'git@bitbucket.org:aashka7240/jenkins-practice.git'
             }
         }
         
