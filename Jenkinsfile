@@ -56,8 +56,8 @@ pipeline {
                     sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' server/server-deployment.yaml
                     sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' client/client-deployment.yaml
 
-                    cat client/client-deployment
-                    cat server/server-deployment
+                    cat client/client-deployment.yaml
+                    cat server/server-deployment.yaml
 
 
 
