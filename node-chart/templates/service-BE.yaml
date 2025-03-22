@@ -1,0 +1,14 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-service
+  namespace: node-main
+spec:
+  type: ClusterIP
+  selector:
+    app: node-server-main
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000

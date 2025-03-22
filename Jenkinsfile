@@ -1,109 +1,234 @@
-pipeline {
-    agent any
+    pipeline {
+        agent any
 
-    environment {
-        KUBECONFIG = '/var/lib/jenkins/.kube/config' 
-    }
+        options {
+            withFolderProperties()
 
-    stages {
-        stage('Checkout') {
+            // Ensure only one build runs at a time for this job.
+            disableConcurrentBuilds()
+
+            // Use timestamps in the console output for easier debugging.
+            // timestamps()
+
+            // Manage build retention and disk space by discarding old builds.
+            buildDiscarder(logRotator(
+                daysToKeepStr: '30',             // Keep builds for 30 days
+                numToKeepStr: '10',              // Retain the last 10 builds
+                artifactDaysToKeepStr: '15',     // Retain artifacts for 15 days
+                artifactNumToKeepStr: '5'        // Retain artifacts for the last 5 builds
+            ))
+        }
+
+            environment {
+                ECR_URL = '730335483782.dkr.ecr.us-east-1.amazonaws.com/node-main/crud3tier'
+                IMAGE_TAG = "${env.BUILD_NUMBER}-${BRANCH_NAME}"
+                DOCKER_IMAGE = "${env.ECR_URL}:${IMAGE_TAG}"
+                DEPLOYMENT_NAME = ""
+                REPO_NAME = "node-container"
+                 
+
+        
+        }
+
+        stages {
+            stage("Job Triggered  Notification  " ){
+                steps{
+                    script{
+                        echo 'Job triggered successfully.'
+                        emailext subject: "Jenkins Pipeline Triggered : ${env.JOB_NAME} Build #${env.BUILD_NUMBER}", 
+                            body: """
+                            The Jenkins pipeline has been triggered.<br><br>
+                            <b>Project:</b> ${env.JOB_NAME}<br>
+                            <b>Build Number:</b> ${env.BUILD_NUMBER}<br>
+                            <b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a>
+                            """,
+                            to: "${EMAIL_RECIPIENTS}", mimeType: 'text/html'
+                    }
+                }
+            } 
+
+            stage('Cloning into a Repo'){
+                steps {
+                    git branch: "${BRANCH_NAME}", credentialsId: 'github-access-token', url: 'https://github.com/keshavunthinkable/crud3tier.git'
+
+                    }
+            }
+                    
+            /*stage('Install Python3 & Check Version') {
+                steps {
+                    sh """
+                    echo "Installing Python3..."
+                    dnf install python3 -y
+                    
+                    echo "Checking Python3 Version..."
+                    python3 --version
+                    """
+                }
+            }*/
+            
+            stage('Build Docker   Image') {
+                steps {
+                    sh """
+                    echo "Building the Docker image..."
+                    docker build -t ${env.DOCKER_IMAGE} .
+                    """
+                }
+            }
+            
+            /*stage('Gitleaks Scan') {
+                steps {
+                    script {
+                        // Fail build if secrets are found
+                        sh '''
+                            gitleaks detect \
+                                --source . \
+                                --verbose \
+                                --report-format csv \
+                                --exit-code 1 \
+                                --report-path gitleaks-report.csv
+                        '''
+                    }
+                }
+            }*/
+            
+            stage('Login to Docker Registry') {
+                    steps {
+                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]) {
+                        sh """
+                        echo "Logging into AWS ECR..."
+                        aws ecr get-login-password --region us-east-1 \
+                        | docker login --username AWS --password-stdin ${env.ECR_URL} || echo "Login Failed 🚨"
+                        """
+                        }
+                    }
+                }
+
+
+            stage('Push Docker Image') {
+                steps {
+                    script {
+                        // Push the built Docker image to AWS ECR.
+                        sh "docker push ${env.DOCKER_IMAGE}"
+                    }
+                }
+            }
+
+
+
+
+            stage('Update kubeconfig') {
+                steps {
+                    script {
+                        // Update kubeconfig to connect to the specified AWS EKS cluster.
+                        sh "aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${AWS_REGION}"
+                    }
+                }
+            }
+            stage('Set New Image') {
+                steps {
+                    script {
+                        // Update the Kubernetes deployment with the new Docker image.
+                    sh """
+                       kubectl set image deployment/${env.DEPLOYMENT_NAME} \
+                        ${env.REPO_NAME}=${env.DOCKER_IMAGE} \
+                        -n ${env.NAMESPACE}
+
+                # 🚨 Ensure it's applied before restarting
+                        kubectl rollout status deployment/${env.DEPLOYMENT_NAME} -n ${env.NAMESPACE}
+
+
+                    """
+                }
+            }
+            }
+            stage('Deploy New Image') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
-                        googlechatnotification url: "${GOOGLE_CHAT_URL}",
-                        message: "🔔 Build #${env.BUILD_NUMBER} for ${env.JOB_NAME} started."
-                    }
-                
+                    // Restart the deployment to ensure the new image is applied.
+                    sh "kubectl rollout restart deployment/${env.DEPLOYMENT_NAME} -n ${env.NAMESPACE}"
                 }
-                git branch: 'main', credentialsId: 'git', url: 'git@bitbucket.org:aashka7240/jenkins-practice.git'
             }
         }
-        
-        stage('Docker Build') {
+            stage('Remove Image from Local') {
             steps {
-                 script {
-                    sh '''#!/bin/bash
-                    docker build -t aashkajain/backend:$BUILD_NUMBER ./server
-                    docker build -t aashkajain/frontend:$BUILD_NUMBER ./client
-                    '''
+                script {
+                    // Remove the Docker image from the local system to save disk space.
+                    sh "docker rmi ${env.DOCKER_IMAGE}"
                 }
             }
         }
 
-        stage('Push Docker Images') {
-            steps {
-
-                 script {
-            withCredentials([usernamePassword(credentialsId: 'dockerhub-registry-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                sh '''#!/bin/bash
-                docker login -u $DOCKER_USER -p $DOCKER_PASS
-                docker push aashkajain/backend:$BUILD_NUMBER
-                docker push aashkajain/frontend:$BUILD_NUMBER
-                '''
+           
+            stage('Restart Pods') {
+                steps {
+                    script {
+            echo "Restarting Pods in Namespace: ${NAMESPACE}"
+            sh """
+                kubectl delete pods -l app=python-app -n ${NAMESPACE} || true
+            """
+                }
             }
+        }
+
+            stage('Verify Deployment') {
+            steps {
+                script {
+            echo "Verifying Deployment in Namespace: ${NAMESPACE}"
+            sh """
+                kubectl get pods -n ${NAMESPACE}
+                kubectl get svc -n ${NAMESPACE}
+                kubectl get ingress -n ${NAMESPACE}
+            """
         }   
-                
             }
         }
 
-        
-        
-        stage('Deploy to Kubernetes') {
+        stage('Check ALB Address') {
             steps {
-               script {
-                // Replace the BUILD_NUMBER placeholder with the actual build number
-                    sh '''#!/bin/bash
-                    sed -i "s/BUILD_NUMBER/${BUILD_NUMBER}/g" server/server-deployment.yaml
-                    sed -i "s/BUILD_NUMBER/${BUILD_NUMBER}/g" client/client-deployment.yaml
-
-                    cat client/client-deployment.yaml
-                    cat server/server-deployment.yaml
-
-
-
-                    kubectl apply -f server/server-deployment.yaml
-                    kubectl apply -f server/server-service.yaml
-                    kubectl apply -f client/client-deployment.yaml
-                    kubectl apply -f client/client-service.yaml
-                    kubectl rollout restart deploy client-deployment
-                    kubectl rollout restart deploy server-deployment
-                    '''
+                script {
+            ALB_URL = sh(script: "kubectl get ingress -n ${NAMESPACE} -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'", returnStdout: true).trim()
+            echo "ALB URL: ${ALB_URL}"
+            currentBuild.description = "ALB URL: ${ALB_URL}"
                 }
             }
         }
+            stage('Secret Scan') {
+                steps {
+                sh '''
+                trufflehog filesystem . --regex --entropy=True || echo 'No Secrets Found'
+                '''
+                }
+            }
     }
-    
-    post {
-        always {
-            script {
-                def log = currentBuild.rawBuild.getLog(100).join('\n')
-                writeFile file: 'console.log', text: log
-                
-            }
-        }
-         success {
-            script {
-                def log = readFile('console.log')
-                withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
-                    def message = "✅ ${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}\n\nLog:\n${log.take(4000)}"
-                    echo "Google Chat URL: ${GOOGLE_CHAT_URL}"
-                    googlechatnotification url: "${GOOGLE_CHAT_URL}",
-                    message: message
+
+   
+
+
+
+        post {
+            success {
+                sendEmail("Success", "Good news! The build was successful.")
                 }
-                cleanWs()
-            }
-        }
-        failure {
-            script {
-                def log = readFile('console.log')
-                withCredentials([string(credentialsId: 'google-chat-url', variable: 'GOOGLE_CHAT_URL')]) {
-                    def message = "❌ ${env.JOB_NAME} : Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: Check output at ${env.BUILD_URL}\n\nLog:\n${log.take(4000)}"
-                    echo "Google Chat URL: ${GOOGLE_CHAT_URL}"
-                    googlechatnotification url: "${GOOGLE_CHAT_URL}",
-                    message: message
+            failure {
+                script {
+                    echo "Rolling back to the previous version of the deployment."
+                    sh """
+                    kubectl rollout undo deployment/${env.DEPLOYMENT_NAME} -n ${env.NAMESPACE}
+                    """
                 }
-                cleanWs()
+                sendEmail("Failed", "Unfortunately, the build has failed. Rolled back to the previous version.")
+            }
+            always {
+                sendEmail("Completed", "The build has completed. Thanks")
             }
         }
-    }
 }
+    def sendEmail(status, message) {
+        emailext(
+            subject: "Jenkins Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER} - ${status}",
+            body: "${message}\n\nCheck console output at ${env.BUILD_URL}",
+            recipientProviders: [[$class: 'CulpritsRecipientProvider'], [$class: 'RequesterRecipientProvider']],
+            to: "${EMAIL_RECIPIENTS}" // Using the defined environment variable for the email address
+        )
+
+    }
