@@ -59,13 +59,9 @@
             stage('Build Docker Image') {
     steps {
         sh """
-        echo "Current Directory:"
-        pwd
-        echo "Listing Files:"
-        ls -l
         echo "Building the Docker image..."
-        docker build -t ${env.DOCKER_IMAGE_CLIENT} .
-        docker build -t ${env.DOCKER_IMAGE_SERVER} .
+        docker build -t ${env.DOCKER_IMAGE_CLIENT} ./client
+        docker build -t ${env.DOCKER_IMAGE_SERVER} ./server
         """
     }
 }
