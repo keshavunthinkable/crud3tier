@@ -74,7 +74,8 @@
                         sh """
                         echo "Logging into AWS ECR..."
                         aws ecr get-login-password --region us-east-1 \
-                        | docker login --username AWS --password-stdin ${env.ECR_URL} || echo "Login Failed 🚨"
+                        | docker login --username AWS --password-stdin ${env.ECR_URL_CLIENT} || echo "Login Failed 🚨"\
+                        | docker login --username AWS --password-stdin ${env.ECR_URL_SERVER} || echo "Login Failed 🚨"
                         """
                         }
                     }
