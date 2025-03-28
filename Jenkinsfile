@@ -95,7 +95,7 @@
 
 
 
-            stage('Update kubeconfig') {
+            //stage('Update kubeconfig') {
                 steps {
                     script {
                         // Update kubeconfig to connect to the specified AWS EKS cluster.
