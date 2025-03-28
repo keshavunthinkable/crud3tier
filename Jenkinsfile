@@ -146,7 +146,6 @@
                 sh "docker rmi ${env.DOCKER_IMAGE_SERVER} || true"
             }
         }
-    }
 
            
            /* stage('Restart Pods') {
