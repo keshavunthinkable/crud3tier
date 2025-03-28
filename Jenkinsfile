@@ -20,10 +20,12 @@
         }
 
             environment {
-                ECR_URL = '730335483782.dkr.ecr.us-east-1.amazonaws.com/node-main/crud3tier'
+                ECR_URL_CLIENT = '730335483782.dkr.ecr.us-east-1.amazonaws.com/frontend/node-main'
+                ECR_URL_SERVER  = '730335483782.dkr.ecr.us-east-1.amazonaws.com/backend/node-main'
                 IMAGE_TAG = "${env.BUILD_NUMBER}-${BRANCH_NAME}"
-                DOCKER_IMAGE = "${env.ECR_URL}:${IMAGE_TAG}"
-                DEPLOYMENT_NAME = ""
+                DOCKER_IMAGE_CLIENT = "${env.ECR_URL_CLIENT}:${IMAGE_TAG}"
+                DOCKER_IMAGE_SERVER = "${env.ECR_URL_SERVER}:${IMAGE_TAG}"
+                DEPLOYMENT_NAME = "node-deployment"
                 REPO_NAME = "node-container"
                  
 
@@ -53,43 +55,17 @@
 
                     }
             }
-                    
-            /*stage('Install Python3 & Check Version') {
-                steps {
-                    sh """
-                    echo "Installing Python3..."
-                    dnf install python3 -y
-                    
-                    echo "Checking Python3 Version..."
-                    python3 --version
-                    """
-                }
-            }*/
-            
+                
             stage('Build Docker   Image') {
                 steps {
                     sh """
                     echo "Building the Docker image..."
-                    docker build -t ${env.DOCKER_IMAGE} .
+                    docker build -t ${env.DOCKER_IMAGE_CLIENT}
+                    docker build -t ${env.DOCKER_IMAGE_SERVER}
                     """
                 }
             }
             
-            /*stage('Gitleaks Scan') {
-                steps {
-                    script {
-                        // Fail build if secrets are found
-                        sh '''
-                            gitleaks detect \
-                                --source . \
-                                --verbose \
-                                --report-format csv \
-                                --exit-code 1 \
-                                --report-path gitleaks-report.csv
-                        '''
-                    }
-                }
-            }*/
             
             stage('Login to Docker Registry') {
                     steps {
@@ -108,7 +84,8 @@
                 steps {
                     script {
                         // Push the built Docker image to AWS ECR.
-                        sh "docker push ${env.DOCKER_IMAGE}"
+                        sh "docker push ${env.DOCKER_IMAGE_CLIENT}"
+                        sh "docker push ${env.DOCKER_IMAGE_SERVER   }"
                     }
                 }
             }
@@ -141,6 +118,12 @@
                 }
             }
             }
+
+            stage('Deploy to Kubernetes') {
+            steps {
+                sh "helm upgrade --install my-app helm/ --set backend.image=$DOCKER_IMAGE_CLIENT --set frontend.image=$DOCKER_IMAGE_SERVER"
+            }
+        }
             stage('Deploy New Image') {
             steps {
                 script {
@@ -159,7 +142,7 @@
         }
 
            
-            stage('Restart Pods') {
+           /* stage('Restart Pods') {
                 steps {
                     script {
             echo "Restarting Pods in Namespace: ${NAMESPACE}"
@@ -168,7 +151,7 @@
             """
                 }
             }
-        }
+        }*/
 
             stage('Verify Deployment') {
             steps {
