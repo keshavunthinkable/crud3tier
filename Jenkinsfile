@@ -95,14 +95,15 @@
 
 
 
-            //stage('Update kubeconfig') {
+            /*stage('Update kubeconfig') {
                 steps {
                     script {
                         // Update kubeconfig to connect to the specified AWS EKS cluster.
                         sh "aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${AWS_REGION}"
                     }
                 }
-            }
+            }*/
+            
             stage('Set New Image') {
                 steps {
                     script {
