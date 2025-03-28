@@ -56,15 +56,20 @@
                     }
             }
                 
-            stage('Build Docker   Image') {
-                steps {
-                    sh """
-                    echo "Building the Docker image..."
-                    docker build -t ${env.DOCKER_IMAGE_CLIENT} .
-                    docker build -t ${env.DOCKER_IMAGE_SERVER} .
-                    """
-                }
-            }
+            stage('Build Docker Image') {
+    steps {
+        sh """
+        echo "Current Directory:"
+        pwd
+        echo "Listing Files:"
+        ls -l
+        echo "Building the Docker image..."
+        docker build -t ${env.DOCKER_IMAGE_CLIENT} .
+        docker build -t ${env.DOCKER_IMAGE_SERVER} .
+        """
+    }
+}
+
             
             
             stage('Login to Docker Registry') {
