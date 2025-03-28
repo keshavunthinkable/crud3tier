@@ -2,49 +2,25 @@
 namespace: node-main
 
 # Backend Service Configuration
-backend:
-  name: server
-  replicas: 2
-  image: 730335483782.dkr.ecr.us-east-1.amazonaws.com/node-main/crud3tier:latest
-  containerPort: 5000
-  service:
-    type: ClusterIP
-    port: 80
-    targetPort: 5000
-  labels:
-    app: node-server-main
+# namespace: node-main
 
-# Frontend Service Configuration
-frontend:
-  name: client
+server:
+  image: "730335483782.dkr.ecr.us-east-1.amazonaws.com/backend/node-main"
   replicas: 2
-  image: 730335483782.dkr.ecr.us-east-1.amazonaws.com/node-main/crud3tier:latest
-  containerPort: 3000
-  service:
-    type: ClusterIP
-    port: 80
-    targetPort: 3000
-  labels:
-    app: node-client-main
 
-# Ingress Configuration
+client:
+  image: "730335483782.dkr.ecr.us-east-1.amazonaws.com/frontend/node-main"
+  replicas: 2
+
+mongo:
+  uri: "mongodb+srv://keshw:<keshaV@1>@cluster0.bga5f7q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
 ingress:
   enabled: true
-  className: alb
-  annotations:
-    alb.ingress.kubernetes.io/success-codes: "200"
-    alb.ingress.kubernetes.io/healthcheck-path: "/"
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:730335483782:certificate/eaebb70e-31a3-4530-8f62-5bc7ab4e5b6c
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/group.name: node-app-group
-    alb.ingress.kubernetes.io/ssl-redirect: "443"
-  host: keshavmittal.cloud
-  paths:
-    - path: /frontend
-      serviceName: client-service
-      servicePort: 80
-    - path: /backend
-      serviceName: server-service
-      servicePort: 80
+  hosts:
+    - host: keshavmittal.cloud
+      paths:
+        - path: /
+          backendService: client-service
+        - path: /api
+          backendService: server-service

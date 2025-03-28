@@ -25,9 +25,9 @@
                 IMAGE_TAG = "${env.BUILD_NUMBER}-${BRANCH_NAME}"
                 DOCKER_IMAGE_CLIENT = "${env.ECR_URL_CLIENT}:${IMAGE_TAG}"
                 DOCKER_IMAGE_SERVER = "${env.ECR_URL_SERVER}:${IMAGE_TAG}"
-                DEPLOYMENT_NAME = "node-deployment"
-                REPO_NAME = "node-container"
-                 
+                DEPLOYMENT_NAME = "app-deployment"
+                REPO_NAME_CLIENT = "client-container"
+                REPO_NAME_SERVER = "server-container" 
 
         
         }
@@ -60,8 +60,8 @@
                 steps {
                     sh """
                     echo "Building the Docker image..."
-                    docker build -t ${env.DOCKER_IMAGE_CLIENT}
-                    docker build -t ${env.DOCKER_IMAGE_SERVER}
+                    docker build -t ${env.DOCKER_IMAGE_CLIENT} .
+                    docker build -t ${env.DOCKER_IMAGE_SERVER} .
                     """
                 }
             }
@@ -73,7 +73,7 @@
                         sh """
                         echo "Logging into AWS ECR..."
                         aws ecr get-login-password --region us-east-1 \
-                        | docker login --username AWS --password-stdin ${env.ECR_URL} || echo "Login Failed 🚨"
+                        | Builddocker login --username AWS --password-stdin ${env.ECR_URL} || echo "Login Failed 🚨"
                         """
                         }
                     }
@@ -107,7 +107,8 @@
                         // Update the Kubernetes deployment with the new Docker image.
                     sh """
                        kubectl set image deployment/${env.DEPLOYMENT_NAME} \
-                        ${env.REPO_NAME}=${env.DOCKER_IMAGE} \
+                        ${env.REPO_NAME_CLIENT}=${env.DOCKER_IMAGE_CLIENT} \
+                        ${env.REPO_NAME_SERVER}=${env.DOCKER_IMAGE_SERVER} \
                         -n ${env.NAMESPACE}
 
                 # 🚨 Ensure it's applied before restarting
@@ -118,10 +119,17 @@
                 }
             }
             }
-
-            stage('Deploy to Kubernetes') {
+            stage('Deploy to Kubernetes using Helm') {
             steps {
-                sh "helm upgrade --install my-app helm/ --set backend.image=$DOCKER_IMAGE_CLIENT --set frontend.image=$DOCKER_IMAGE_SERVER"
+                sh """
+                kubectl create secret generic mongo-secret \
+                --from-literal=MONGO_URI="your-mongo-atlas-uri" \
+                -n ${env.NAMESPACE} || true
+
+                helm upgrade --install my-app helm/ \
+                --set server.image=${DOCKER_IMAGE_SERVER} \
+                --set client.image=${DOCKER_IMAGE_CLIENT}
+                """
             }
         }
             stage('Deploy New Image') {
@@ -132,14 +140,13 @@
                 }
             }
         }
-            stage('Remove Image from Local') {
+            stage('Remove Local Docker Images') {
             steps {
-                script {
-                    // Remove the Docker image from the local system to save disk space.
-                    sh "docker rmi ${env.DOCKER_IMAGE}"
-                }
+                sh "docker rmi ${env.DOCKER_IMAGE_CLIENT} || true"
+                sh "docker rmi ${env.DOCKER_IMAGE_SERVER} || true"
             }
         }
+    }
 
            
            /* stage('Restart Pods') {

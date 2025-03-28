@@ -1,21 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: client-deployment
-  namespace: node-main
+  name: server-deployment
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.server.replicas }}
   selector:
     matchLabels:
-      app: node-main
+      app: server
   template:
     metadata:
       labels:
-        app: node-main
+        app: server
     spec:
       containers:
-        - name: node-container
-          image: 730335483782.dkr.ecr.us-east-1.amazonaws.com/node-main/crud3tier:latest
-         # imagePullPolicy: Always # this is used to deploy image everytime the code is pushed meaning previously if the code is image tag is same image is not pushed  
+        - name: server-container
+          image: "{{ .Values.server.image }}"
+          ports:
+            - containerPort: 5000
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_URI
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.client.replicas }}
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: client-container
+          image: "{{ .Values.client.image }}"
           ports:
             - containerPort: 3000
