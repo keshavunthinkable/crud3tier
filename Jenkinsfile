@@ -74,7 +74,7 @@
                         sh """
                         echo "Logging into AWS ECR..."
                         aws ecr get-login-password --region us-east-1 \
-                        | Builddocker login --username AWS --password-stdin ${env.ECR_URL} || echo "Login Failed 🚨"
+                        | docker login --username AWS --password-stdin ${env.ECR_URL} || echo "Login Failed 🚨"
                         """
                         }
                     }
